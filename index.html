@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.11.7/video-js.min.css" rel="stylesheet" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.11.7/video.min.js"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-eme@3.8.0/dist/videojs-contrib-eme.js"></script>
+
+    <title>Test VideJS DRM</title>
+
+    <style>
+        .segment {
+            /* width: 10%; */
+            /* max-width: min-content; */
+            background-color: green;
+            color: black;
+            display: inline-flex;
+        
+            padding-left: 1em;
+            margin-left: 0.3em;
+    
+        }
+
+        .segment-container {
+            display: flex;
+            width: 100%;
+            background-color: red;
+
+        }
+    
+    </style>
+
+    
+</head>
+<body>
+
+    <div style="margin: 50px auto;">
+        <video id="my-video" class="video-js"></video>
+    </div>
+
+
+
+    <script>
+        
+        var player = videojs(
+            'my-video',
+            {
+                controls: true,
+                fluid: true,
+                autoplay: true,
+                muted: true,
+                html5: {
+                    vhs: { 
+                        overrideNative: true 
+                    }
+                }
+            },
+            function() {
+                var player = this;
+                player.eme();
+                
+                player.src({
+                    src: 'https://cdn.bitmovin.com/content/assets/art-of-motion_drm/mpds/11331.mpd',
+                    type: 'application/dash+xml',                    
+                    keySystems: {
+                      'com.widevine.alpha': 'https://cwip-shaka-proxy.appspot.com/no_auth',                     
+                    }
+                });
+
+            
+                player.on('loadedmetadata', function() {
+
+                
+
+                    // getting the seekBar
+
+                    var seekBar = player.controlBar.progressControl.seekBar;
+
+                    // defining segments array
+
+                    var segments = [
+                        {timeStamp: 0, desc: " 1"},
+                        {timeStamp: 15, desc: " 2"},
+                        {timeStamp: 20, desc: " 3"},
+                        {timeStamp: 35, desc: " 4"},
+                        {timeStamp: 44, desc: " 5"},
+                    ];
+
+                    // initializing the segmentMarkers array
+
+                    var segmentMarkers = [];
+
+                    // adding segment markers
+
+                    var segment_container = document.createElement('div');
+                    segment_container.classList.add('segment-container');
+
+
+
+                    for(var i = 0; i<segments.length; i++){
+                        var segment = segments[i];
+                        var marker = document.createElement('div');
+                        
+                        // marker.className = 'vjs-segment-marker';
+
+                        var seekbar_width = player.getChild('ControlBar').getChild('ProgressControl').currentWidth();
+                        console.log(seekbar_width);
+                        marker.classList.add('segment');
+                        marker.style.left = (segment.timeStamp / player.duration()) * 100 + ' %';
+                        console.log(player.duration() )
+                        var w =  i<segments.length-1 ? ((segments[i+1].timeStamp - segment.timeStamp)/ player.duration())*100+'%' : ((player.duration() - segment.timeStamp)/ player.duration())*100+'%' ;
+                        console.log(w);
+                        marker.style.width = w;
+
+                        marker.innerHTML = segment.desc;
+                        segment_container.appendChild(marker);
+                        segmentMarkers.push(marker);
+
+                    }
+
+                    seekBar.el().appendChild(segment_container);
+
+                    player.on('timeupdate', function() {
+
+                        
+                        // var currentTime = player.currentTime();
+                        // console.log(player.currentTime());
+                        for (var i = 0; i < segments.length; i++) {
+                            var segment = segments[i];
+                            var marker = segmentMarkers[i];
+                            // if (currentTime >= segment.timeStamp) {
+                            //     marker.style.display = 'block';
+                            // } else {
+                            //     marker.style.display = 'none';
+                            // }
+                        }
+                    });
+
+
+                    player.tech(true).on('keystatuschange', function(event) {    
+                        console.log("event: ", event);        
+
+                    });                        
+
+                });                
+            }            
+        
+        );
+               
+
+
+    </script>
+    
+</body>
+
+</html>
