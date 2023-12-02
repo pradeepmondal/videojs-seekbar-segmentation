@@ -66,8 +66,8 @@
         {
           controls: true,
           fluid: true,
-          autoplay: true,
-          muted: true,
+          // autoplay: true,
+          // muted: true,
           html5: {
             vhs: {
               overrideNative: true,
@@ -106,7 +106,7 @@
 
             var segmentMarkers = [];
 
-            // adding segment markers
+            // creating container for the segments
 
             var segment_container = document.createElement("div");
             segment_container.classList.add("segment-container");
@@ -114,15 +114,10 @@
             for (var i = 0; i < segments.length; i++) {
               var segment = segments[i];
               var marker = document.createElement("div");
-
-              // marker.className = 'vjs-segment-marker';
-
-              var seekbar_width = player
-                .getChild("ControlBar")
-                .getChild("ProgressControl")
-                .currentWidth();
-              console.log(seekbar_width);
               marker.classList.add("segment");
+
+              // setting the width of the markers as per the duration
+
               marker.style.left =
                 (segment.timeStamp / player.duration()) * 100 + " %";
               // console.log(player.duration() )
@@ -141,20 +136,23 @@
               marker.param = segment.timeStamp;
               marker.paramDesc = segment.desc;
 
-              
+              // adding the tooltip text
+
               var tooltip = document.createElement("div");
               tooltip.innerHTML = '&nbsp';
               tooltip.classList.add('tooltip');
 
               marker.paramObj = tooltip;
 
-              
+              // adding click event to the marker
 
               marker.addEventListener("click", function () {
                 // console.log(this);
 
                 player.currentTime(this.param);
               });
+
+              // adding hover event to the marker
 
               marker.addEventListener("mouseover", function () {
                 // console.log(this);
@@ -173,22 +171,15 @@
                 this.paramObj.innerHTML = '&nbsp';
                 this.paramObj.display = "none";
               });
+
+              // appending the tooltip inside the marker and marker inside segment container
+
               marker.appendChild(tooltip);
               segment_container.appendChild(marker);
               segmentMarkers.push(marker);
             }
 
             seekBar.el().appendChild(segment_container);
-
-            player.on("timeupdate", function () {
-              var currentTime = player.currentTime();
-              console.log(player.currentTime());
-              for (var i = 0; i < segments.length; i++) {
-                var segment = segments[i];
-                var marker = segmentMarkers[i];
-                // marker.style.backgroundColor = 'red';
-              }
-            });
 
             player.tech(true).on("keystatuschange", function (event) {
               console.log("event: ", event);
